@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ void main() async {
   bool? isDark = CachHelper.getData(key: 'isDark');
   Widget widget;
   uId = CachHelper.getData(key: 'uId');
+
   bool? OnBoarding = CachHelper.getData(key: 'OnBoarding');
   if (OnBoarding != null) {
     if (uId != null) {
@@ -67,8 +69,8 @@ class MyApp extends StatelessWidget {
                     ? ThemeMode.dark
                     : ThemeMode.light,
                 debugShowCheckedModeBanner: false,
-                home: FutureBuilder(
-                  future: Future.value(FirebaseAuth.instance.currentUser),
+                home: StreamBuilder(
+                  stream: FirebaseAuth.instance.authStateChanges(),
                   builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                   if(snapshot.hasData) {
                     return HomeScreen();

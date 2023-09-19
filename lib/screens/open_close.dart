@@ -13,7 +13,7 @@ import 'side_bar/navigation_drawer.dart';
 class OpenCloseScreen extends StatelessWidget {
   final DBref = FirebaseDatabase.instance.ref();
 
-  int? handStatus = 0;
+  int? handStatus = 18;
 
   // int counter=0;
   getHandStatus() async {
@@ -62,9 +62,9 @@ class OpenCloseScreen extends StatelessWidget {
                 height: 10.0,
               ),
               opencloseButtons(text: lan.getTexts('page1-btn1')as String, onPressed:  (){
-                handStatus == 0
-                    ? DBref.child('handStatus').set(01)
-                    : DBref.child('handStatus').set(01);
+                handStatus == 18
+                    ? DBref.child('handStatus').set(17)
+                    : DBref.child('handStatus').set(17);
               },),
               const SizedBox(
                 height: 20.0,
@@ -74,9 +74,9 @@ class OpenCloseScreen extends StatelessWidget {
                 height: 10.0,
               ),
               opencloseButtons(text: lan.getTexts('page1-btn2')as String, onPressed:  (){
-                handStatus == 01
-                    ? DBref.child('handStatus').set(0)
-                    : DBref.child('handStatus').set(0);
+                handStatus == 17
+                    ? DBref.child('handStatus').set(18)
+                    : DBref.child('handStatus').set(18);
               },),
             ],
           ),

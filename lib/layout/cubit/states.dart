@@ -60,3 +60,35 @@ class ChangeLanState extends ProjectStates{}
 class GetLanState extends ProjectStates{}
 
 class signOutState extends ProjectStates{}
+
+
+
+class RegisterInitialState extends ProjectStates {}
+
+class RegisterLoadingState extends ProjectStates {}
+
+class RegisterSuccessState extends ProjectStates {
+
+}
+
+class RegisterErrorState extends ProjectStates
+{
+  final String error;
+
+  RegisterErrorState(this.error);
+}
+
+class CreateUserSuccessState extends ProjectStates {
+  final UserModel userModel;
+
+  CreateUserSuccessState(this.userModel);
+}
+
+class CreateUserErrorState extends ProjectStates
+{
+  final String error;
+
+  CreateUserErrorState(this.error);
+}
+
+class RegisterChangePasswordVisibilityState extends ProjectStates {}

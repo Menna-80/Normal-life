@@ -70,10 +70,14 @@ class LoginScreen extends StatelessWidget {
               key: 'uId',
               value: state.uId,
             ).then((value) async {
+              print('************************************************');
+              print(ProjectCubit.get(context).userModel);
+              print('************************************************');
               NavigateAndReplace(
-                context,
-                HomeScreen(),
-              );
+                  context,
+                  HomeScreen(),
+                );
+
             });
             ShowToast(
               text: 'Logged in successfully',

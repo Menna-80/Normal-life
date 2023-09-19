@@ -19,4 +19,4 @@ void printFullData(String text){
   pattern.allMatches(text).forEach((element) =>print(element.group(0)));
 }
 
-String? uId = FirebaseAuth.instance.currentUser?.uid;
+String? uId = '';

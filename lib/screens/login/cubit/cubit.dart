@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gradution_project/screens/login/cubit/states.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../models/usermodel.dart';
 import '../../../shared/components/components.dart';
 
 class LoginCubit extends Cubit<LoginStates> {
@@ -43,14 +44,15 @@ class LoginCubit extends Cubit<LoginStates> {
 
     emit(ChangePasswordVisibilityState());
   }
+  UserModel? userModel;
 
   SignIn({required String email, required String password}) async {
     emit(LoginLoadingState());
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password) ;
+      //return userCredential;
       emit(LoginSuccessState(userCredential.user!.uid));
-
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         ShowToast(

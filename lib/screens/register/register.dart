@@ -1,16 +1,16 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
+
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gradution_project/screens/register/cubit/cubit.dart';
-import 'package:gradution_project/screens/register/cubit/states.dart';
-import 'package:gradution_project/shared/components/constants.dart';
-import 'package:gradution_project/shared/network/local/shared_pref.dart';
+import 'package:gradution_project/layout/cubit/states.dart';
 import '../../layout/cubit/cubit.dart';
 import '../../shared/components/components.dart';
+
+import '../../shared/components/constants.dart';
+import '../../shared/network/local/shared_pref.dart';
 import '../home.dart';
-import '../login/cubit/states.dart';
+
 
 class RegisterScreen extends StatelessWidget {
    RegisterScreen({super.key});
@@ -31,28 +31,34 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (BuildContext context) => RegisterCubit(),
-      child: BlocConsumer<RegisterCubit, RegisterStates>(
+      create: (BuildContext context) => ProjectCubit(),
+      child: BlocConsumer<ProjectCubit, ProjectStates>(
         listener: (context, state) {
           if (state is RegisterErrorState) {
             ShowToast(
               text: state.error,
               state: ToastStates.error,
             );
+            print('************************************************');
+            print('errrooooor');
+            print('************************************************');
           }
           if (state is CreateUserSuccessState) {
-            ShowToast(
-              text:'Successfully registered' ,
-              state: ToastStates.success,
-            );
-            NavigateAndReplace(
-              context,
-              HomeScreen(),
-            );
-            ShowToast(
-              text:'Successfully registered' ,
-              state: ToastStates.success,
-            );
+            print('************************************************');
+            print(ProjectCubit.get(context).userModel);
+            print('************************************************');
+            if(ProjectCubit.get(context).userModel != null)
+
+                ShowToast(
+                  text:'Successfully registered' ,
+                  state: ToastStates.success,
+                );
+                NavigateAndReplace(
+                  context,
+                  HomeScreen(),
+                );
+
+
           }
         },
         builder: (context, state) {
@@ -128,12 +134,12 @@ class RegisterScreen extends StatelessWidget {
                               }
                             },
                             onSubmit: (String? value) {},
-                            isPassword: RegisterCubit.get(context).isPassword,
+                            isPassword: ProjectCubit.get(context).isPassword,
                             label: 'Password',
                             prefix: Icons.password_outlined,
-                            suffix: RegisterCubit.get(context).suffix,
+                            suffix: ProjectCubit.get(context).suffix,
                             suffixPressed: () {
-                              RegisterCubit.get(context)
+                              ProjectCubit.get(context)
                                   .changePasswordVisibility();
                             }),
                         const SizedBox(
@@ -159,7 +165,7 @@ class RegisterScreen extends StatelessWidget {
                           builder: (context) => defualtButton(
                             function: () {
                               if (formkey.currentState?.validate() == true) {
-                                RegisterCubit.get(context).userRegister(
+                                ProjectCubit.get(context).userRegister(
                                     email: emailController.text,
                                     password: passwordController.text,
                                     name: nameController.text,

@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../models/usermodel.dart';
 import '../../shared/components/constants.dart';
-import 'package:firebase_storage/firebase_storage.dart'as firebase_storage ;
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 import '../../shared/network/local/shared_pref.dart';
 
@@ -20,23 +20,91 @@ class ProjectCubit extends Cubit<ProjectStates> {
 
   UserModel? userModel;
 
+  void userRegister({
+    required String name,
+    required String email,
+    required String password,
+    required String phone,
+  }) {
+    print('hello');
 
-  void getUserData()async {
+    emit(RegisterLoadingState());
+
+    FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    )
+        .then((value) {
+      userCreate(
+        uId: value.user!.uid,
+        phone: phone,
+        email: email,
+        name: name,
+      );
+     print(value);
+     // value.user!.updatePhoneNumber(phone);
+    }).catchError((error) {
+      emit(RegisterErrorState(error.toString()));
+    });
+  }
+
+  void userCreate({
+    required String name,
+    required String email,
+    required String phone,
+    required String uId,
+  }) {
+    UserModel userModel = UserModel(
+      name: name,
+      email: email,
+      phone: phone,
+      uId: uId,
+      bio: 'write you bio ...',
+      cover:
+          'https://image.freepik.com/free-photo/photo-attractive-bearded-young-man-with-cherful-expression-makes-okay-gesture-with-both-hands-likes-something-dressed-red-casual-t-shirt-poses-against-white-wall-gestures-indoor_273609-16239.jpg',
+      image:
+          'https://image.freepik.com/free-photo/photo-attractive-bearded-young-man-with-cherful-expression-makes-okay-gesture-with-both-hands-likes-something-dressed-red-casual-t-shirt-poses-against-white-wall-gestures-indoor_273609-16239.jpg',
+      isEmailVerified: false,
+    );
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uId)
+        .set(userModel.toMap())
+        .then((value) {
+      emit(CreateUserSuccessState(userModel));
+    }).catchError((error) {
+      print(error.toString());
+      emit(CreateUserErrorState(error.toString()));
+    });
+  }
+
+  IconData suffix = Icons.visibility_off_rounded;
+  bool isPassword = true;
+
+  void changePasswordVisibility() {
+    isPassword = !isPassword;
+    suffix =
+        isPassword ? Icons.visibility_off_rounded : Icons.visibility_rounded;
+
+    emit(RegisterChangePasswordVisibilityState());
+  }
+
+  Stream<QuerySnapshot> getUserData() async* {
     emit(GetUserLoadingState());
 
-   await FirebaseFirestore.instance.collection('users').doc(uId).get().then((value) {
-      if (value.exists) {
+    await FirebaseFirestore.instance.collection('users').doc(uId).get().then((value) {
+      print(value);
         userModel = UserModel.fromJson(value.data() as Map<String, dynamic>);
         emit(GetUserSuccessState());
         print('*************************************************');
-      } else {
-        emit(GetUserErrorState('User not found'));
-      }
+        print(value);
+
     }).catchError((error) {
       emit(GetUserErrorState(error.toString()));
     });
   }
-
 
   File? profileImage;
   var picker = ImagePicker();
@@ -56,9 +124,6 @@ class ProjectCubit extends Cubit<ProjectStates> {
     }
   }
 
-
-
-
   void uploadProfileImage({
     required String name,
     required String phone,
@@ -66,13 +131,9 @@ class ProjectCubit extends Cubit<ProjectStates> {
   }) {
     emit(UserUpdateLoadingState());
 
-
     firebase_storage.FirebaseStorage.instance
         .ref()
-        .child('users/${Uri
-        .file(profileImage!.path)
-        .pathSegments
-        .last}')
+        .child('users/${Uri.file(profileImage!.path).pathSegments.last}')
         .putFile(profileImage!)
         .then((value) {
       value.ref.getDownloadURL().then((value) {
@@ -91,7 +152,7 @@ class ProjectCubit extends Cubit<ProjectStates> {
       emit(UploadProfileImageErrorState());
     });
   }
-
+  final user = FirebaseAuth.instance.currentUser;
 
   void updateUser({
     required String name,
@@ -100,21 +161,14 @@ class ProjectCubit extends Cubit<ProjectStates> {
     String? cover,
     String? image,
   }) {
-    UserModel model = UserModel(
-      name: name,
-      phone: phone,
-      email:email,
-      cover: cover ?? userModel!.cover,
-      image: image ?? userModel!.image,
-      uId: userModel!.uId,
-      isEmailVerified: false,
-      bio: '',
-    );
-
     FirebaseFirestore.instance
         .collection('users')
-        .doc(uId)
-        .update(model.toMap())
+        .doc(user?.uid)
+        .update({
+      'name':name,
+      'phone':phone,
+      'email':email,
+    })
         .then((value) {
       getUserData();
       emit(UserUpdateSuccessState());
@@ -123,17 +177,12 @@ class ProjectCubit extends Cubit<ProjectStates> {
     });
   }
 
-
-
   bool isDark = true;
-  void changeMode({ bool? fromShared})
-  {
-    if (fromShared != null)
-    {
+  void changeMode({bool? fromShared}) {
+    if (fromShared != null) {
       isDark = fromShared;
       emit(ChangeModeState());
-    } else
-    {
+    } else {
       isDark = !isDark;
       CachHelper.putBoolean(key: 'isDark', value: isDark).then((value) {
         emit(ChangeModeState());
@@ -141,129 +190,130 @@ class ProjectCubit extends Cubit<ProjectStates> {
     }
   }
 
-
   bool isEn = true;
-  Map<String, Object> textsAr ={
-    "hello":" مرحبا بك",
+  Map<String, Object> textsAr = {
+    "hello": " مرحبا بك",
     "title": " ماذا تريد أن تفعل؟",
     "home-btn1": "التحكم بيدك كاملة",
-    "home-btn2":"التحكم بكل إصبع",
-    "home-btn3":"اصنع شكل",
-    "home-btn4":"التحكم بزاوية اليد",
-    "home-btn5":"التعليمات",
-    "drawer1":"الصفحة الرئيسية",
-    "drawer2":"الصفحة الشخصية",
-    "drawer3":"المظهر الداكن",
-    "drawer4":"العربية",
-    "drawer4-1":"الإنجليزية",
-    "drawer5":"من نحن",
-    "drawer6":"تسجيل خروج",
-    "page1-title":"التحكم بيدك كاملة",
-    "page2-title":"التحكم بكل إصبع",
-    "page3-title":"اصنع شكل",
-    "page4-title":"التحكم بزاوية اليد",
-    "page5-title":"التعليمات",
-    "page6-title":"من نحن",
-    "page6-headline":"نحن فريق هدفنا إيجاد أفضل الحلول للأشخاص الذين يعانون من بتر أو شلل اليد اليمنى بسبب إصابة الحبل الشوكي ، لأداء مهامهم اليومية دون أي عائق جسدي أو نفسي أمامهم وبأقل تكلفة ، ويمكنك التواصل مع أي من أعضاء الفريق",
-    "page6-1":"منار عبد الرحمن محمد",
-    "page6-1.1":"manarabdo972@gmail.com",
-    "page6-2":"ولاء السيد جلال",
-    "page6-2.1":"walaaalsayed242001@gmail.com",
-    "page6-3":"يسرا ضياء مختار",
-    "page6-3.1":"yossradiaa133@gmail.com",
-    "page6-4":"منة الله عاطف محمد",
-    "page6-4.1":"mennatullah327@gmail.com",
-    "page6-5":"مي إبراهيم أحمد",
-    "page6-5.1":"maiibrahim3355@gmail.com",
-    "page1-btn1":"افتح يدك",
-    "page1-btn2":"أغلق يدك",
-    "page2-finger1":"إصبع الإبهام",
-    "page2-finger2":"السبابة",
-    "page2-finger3":"الاصبع الوسطى",
-    "page2-finger4":"البنصر",
-    "page2-finger5":"الاصبع الصغير",
-    "page2-btn1":"افتح الاصبع",
-    "page2-btn2":"أغلق إصبعك",
-    "page3-title2":"اختر الشكل الذي تريده وانقر فوقه",
-    "page4-title2":"تعليمات لإبقاء يدك تعمل بشكل جيد",
-    "page4-ins1":"لا تقم بإزالة أي جزء من اليد",
-    "page4-ins2":"استخدم جهد بطارية لا يقل عن 4.8 فولت ولا يزيد عن 6 فولت.",
-    "page4-ins3":"تغيير حجارة البطارية كل أسبوع ",
-    "page4-ins4":"تجنب تغيير السلك الذي يربط الأصابع معًا.",
-    "page4-ins5":"لا تجعل أحدًا يزيل شيئًا من يدك ، معتقدًا أن هذا جيد ، قد يدمر يدك.",
-    "page4-ins6":"لا تجعل الماء يلمس البطارية أو الأجزاء الداخلية ، فهو يدمرها.",
-    "page4-ins7":"إذا كان لديك أي مشكلة يرجى الاتصال بنا.",
-    "profile-btn":"تحديث البيانات",
-    "profile-title":"صفحتي الشخصية",
-
-
-
+    "home-btn2": "التحكم بكل إصبع",
+    "home-btn3": "اصنع شكل",
+    "home-btn4": "التحكم بزاوية اليد",
+    "home-btn5": "التعليمات",
+    "drawer1": "الصفحة الرئيسية",
+    "drawer2": "الصفحة الشخصية",
+    "drawer3": "المظهر الداكن",
+    "drawer4": "العربية",
+    "drawer4-1": "الإنجليزية",
+    "drawer5": "من نحن",
+    "drawer6": "تسجيل خروج",
+    "page1-title": "التحكم بيدك كاملة",
+    "page2-title": "التحكم بكل إصبع",
+    "page3-title": "اصنع شكل",
+    "page4-title": "التحكم بزاوية اليد",
+    "page5-title": "التعليمات",
+    "page6-title": "من نحن",
+    "page6-headline":
+        "نحن فريق هدفنا إيجاد أفضل الحلول للأشخاص الذين يعانون من بتر أو شلل اليد اليمنى بسبب إصابة الحبل الشوكي ، لأداء مهامهم اليومية دون أي عائق جسدي أو نفسي أمامهم وبأقل تكلفة ، ويمكنك التواصل مع أي من أعضاء الفريق",
+    "page6-1": "منار عبد الرحمن محمد",
+    "page6-1.1": "manarabdo972@gmail.com",
+    "page6-2": "ولاء السيد جلال",
+    "page6-2.1": "walaaalsayed242001@gmail.com",
+    "page6-3": "يسرا ضياء مختار",
+    "page6-3.1": "yossradiaa133@gmail.com",
+    "page6-4": "منة الله عاطف محمد",
+    "page6-4.1": "mennatullah327@gmail.com",
+    "page6-5": "مي إبراهيم أحمد",
+    "page6-5.1": "maiibrahim3355@gmail.com",
+    "page1-btn1": "افتح يدك",
+    "page1-btn2": "أغلق يدك",
+    "page2-finger1": "إصبع الإبهام",
+    "page2-finger2": "السبابة",
+    "page2-finger3": "الاصبع الوسطى",
+    "page2-finger4": "البنصر",
+    "page2-finger5": "الاصبع الصغير",
+    "page2-btn1": "افتح الاصبع",
+    "page2-btn2": "أغلق إصبعك",
+    "page3-title2": "اختر الشكل الذي تريده وانقر فوقه",
+    "page4-title2": "تعليمات لإبقاء يدك تعمل بشكل جيد",
+    "page4-ins1": "لا تقم بإزالة أي جزء من اليد",
+    "page4-ins2": "استخدم جهد بطارية لا يقل عن 4.8 فولت ولا يزيد عن 6 فولت.",
+    "page4-ins3": "تغيير حجارة البطارية كل أسبوع ",
+    "page4-ins4": "تجنب تغيير السلك الذي يربط الأصابع معًا.",
+    "page4-ins5":
+        "لا تجعل أحدًا يزيل شيئًا من يدك ، معتقدًا أن هذا جيد ، قد يدمر يدك.",
+    "page4-ins6":
+        "لا تجعل الماء يلمس البطارية أو الأجزاء الداخلية ، فهو يدمرها.",
+    "page4-ins7": "إذا كان لديك أي مشكلة يرجى الاتصال بنا.",
+    "profile-btn": "تحديث البيانات",
+    "profile-title": "صفحتي الشخصية",
   };
-  Map<String, Object> textsEn ={
-    "hello":"Hello",
+  Map<String, Object> textsEn = {
+    "hello": "Hello",
     "title": "What Do You Want To Do ?",
     "home-btn1": "Control All Your Hand",
-    "home-btn2":"Control Each Finger",
-    "home-btn3":"Make A Shape",
-    "home-btn4":"Hand angle control",
-    "home-btn5":"Instructions",
-    "drawer1":"Home",
-    "drawer2":"Profile",
-    "drawer3":"Dark Mode",
-    "drawer4":"Arabic",
-    "drawer4-1":"English",
-    "drawer5":"About us",
-    "drawer6":"Log Out",
-    "page1-title":"Control All Your Hand",
-    "page2-title":"Control Each Finger",
-    "page3-title":"Make A Shape",
-    "page4-title":"Hand angle control",
-    "page5-title":"Instructions",
-    "page6-title":"About Us",
-    "page6-headline":"We are a team whose goal is to find the best solutions for people who suffer from amputation or paralysis of their right hand because of spinal cord injury, to perform their daily tasks without any physical or psychological hindrance in front of them at the lowest cost, and you can communicate with any of the team",
-    "page6-1":"Manar Abd-ElRahman Muhammed ",
-    "page6-1.1":"manarabdo972@gmail.com",
-    "page6-2":"Walaa El-Sayed Galal",
-    "page6-2.1":"walaaalsayed242001@gmail.com",
-    "page6-3":"Yosra Diaa Mokhtar",
-    "page6-3.1":"yossradiaa133@gmail.com",
-    "page6-4":"Mennatullah Atef Muhammed",
-    "page6-4.1":"mennatullah327@gmail.com",
-    "page6-5":"Mai Ibrahim Ahmed",
-    "page6-5.1":"maiibrahim3355@gmail.com",
-    "page1-btn1":"Open Your Hand",
-    "page1-btn2":"Close Your Hand",
-    "page2-finger1":"Thumb",
-    "page2-finger2":"Index Finger",
-    "page2-finger3":"Middle Finger",
-    "page2-finger4":"Ring Finger",
-    "page2-finger5":"Little Finger",
-    "page2-btn1":"Open",
-    "page2-btn2":"Close",
-    "page3-title2":"Choose Shape You Want and click on it",
-    "page4-title2":"Instructions to Keep your hand work well",
-    "page4-ins1":"Don\'t Remove Any part From hand",
-    "page4-ins2":"Use battery voltage not about low 4.8 no more than 6 volt.",
-    "page4-ins3":"Change Battery Supply Every Week ",
-    "page4-ins4":"Avoid changing the wire that connects the fingers together.",
-    "page4-ins5":"Don\’t make any one remove anything from your hand, thinking that is good ,that might destroy your hand.",
-    "page4-ins6":"Don\’t Make water touch the battery or the inside  parts, it destroy it.",
-    "page4-ins7":"If u have any problem please contact us.",
-    "profile-btn":"Edit Profile",
-    "profile-title":"My Profile",
-
+    "home-btn2": "Control Each Finger",
+    "home-btn3": "Make A Shape",
+    "home-btn4": "Hand angle control",
+    "home-btn5": "Instructions",
+    "drawer1": "Home",
+    "drawer2": "Profile",
+    "drawer3": "Dark Mode",
+    "drawer4": "Arabic",
+    "drawer4-1": "English",
+    "drawer5": "About us",
+    "drawer6": "Log Out",
+    "page1-title": "Control All Your Hand",
+    "page2-title": "Control Each Finger",
+    "page3-title": "Make A Shape",
+    "page4-title": "Hand angle control",
+    "page5-title": "Instructions",
+    "page6-title": "About Us",
+    "page6-headline":
+        "We are a team whose goal is to find the best solutions for people who suffer from amputation or paralysis of their right hand because of spinal cord injury, to perform their daily tasks without any physical or psychological hindrance in front of them at the lowest cost, and you can communicate with any of the team",
+    "page6-1": "Manar Abd-ElRahman Muhammed ",
+    "page6-1.1": "manarabdo972@gmail.com",
+    "page6-2": "Walaa El-Sayed Galal",
+    "page6-2.1": "walaaalsayed242001@gmail.com",
+    "page6-3": "Yosra Diaa Mokhtar",
+    "page6-3.1": "yossradiaa133@gmail.com",
+    "page6-4": "Mennatullah Atef Muhammed",
+    "page6-4.1": "mennatullah327@gmail.com",
+    "page6-5": "Mai Ibrahim Ahmed",
+    "page6-5.1": "maiibrahim3355@gmail.com",
+    "page1-btn1": "Open Your Hand",
+    "page1-btn2": "Close Your Hand",
+    "page2-finger1": "Thumb",
+    "page2-finger2": "Index Finger",
+    "page2-finger3": "Middle Finger",
+    "page2-finger4": "Ring Finger",
+    "page2-finger5": "Little Finger",
+    "page2-btn1": "Open",
+    "page2-btn2": "Close",
+    "page3-title2": "Choose Shape You Want and click on it",
+    "page4-title2": "Instructions to Keep your hand work well",
+    "page4-ins1": "Don\'t Remove Any part From hand",
+    "page4-ins2": "Use battery voltage not about low 4.8 no more than 6 volt.",
+    "page4-ins3": "Change Battery Supply Every Week ",
+    "page4-ins4": "Avoid changing the wire that connects the fingers together.",
+    "page4-ins5":
+        "Don\’t make any one remove anything from your hand, thinking that is good ,that might destroy your hand.",
+    "page4-ins6":
+        "Don\’t Make water touch the battery or the inside  parts, it destroy it.",
+    "page4-ins7": "If u have any problem please contact us.",
+    "profile-btn": "Edit Profile",
+    "profile-title": "My Profile",
   };
 
-  changeLan(bool lan) async{
+  changeLan(bool lan) async {
     isEn = lan;
     emit(ChangeLanState());
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool("isEn", isEn);
   }
 
-  getLan() async{
+  getLan() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    isEn = prefs.getBool("isEn")?? true;
+    isEn = prefs.getBool("isEn") ?? true;
     emit(GetLanState());
   }
 
@@ -278,23 +328,12 @@ class ProjectCubit extends Cubit<ProjectStates> {
 }*/
   bool isSignedIn = FirebaseAuth.instance.currentUser != null;
 
-
-  Future<void>signOut()async{
+  Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
     User? currentUser = FirebaseAuth.instance.currentUser;
-    if(currentUser == null) {
+    if (currentUser == null) {
       isSignedIn = false;
     }
     emit(signOutState());
-
-
-
-}
-
-
-
-
-
-
-
+  }
 }

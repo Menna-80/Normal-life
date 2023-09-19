@@ -1,3 +1,5 @@
+import 'package:gradution_project/models/usermodel.dart';
+
 abstract class LoginStates {}
 
 class LoginInitialState extends LoginStates {}

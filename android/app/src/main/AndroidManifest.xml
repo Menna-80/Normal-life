@@ -9,7 +9,7 @@
 
     <application
         android:usesCleartextTraffic="true"
-        android:label="gradution_project"
+        android:label="Normal Life"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
