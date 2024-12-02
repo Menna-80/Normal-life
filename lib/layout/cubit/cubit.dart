@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gradution_project/layout/cubit/states.dart';
-import 'package:gradution_project/screens/login/login.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -26,7 +25,7 @@ class ProjectCubit extends Cubit<ProjectStates> {
     required String password,
     required String phone,
   }) {
-    print('hello');
+
 
     emit(RegisterLoadingState());
 
@@ -42,7 +41,6 @@ class ProjectCubit extends Cubit<ProjectStates> {
         email: email,
         name: name,
       );
-     print(value);
      // value.user!.updatePhoneNumber(phone);
     }).catchError((error) {
       emit(RegisterErrorState(error.toString()));
@@ -75,7 +73,7 @@ class ProjectCubit extends Cubit<ProjectStates> {
         .then((value) {
       emit(CreateUserSuccessState(userModel));
     }).catchError((error) {
-      print(error.toString());
+
       emit(CreateUserErrorState(error.toString()));
     });
   }
@@ -95,11 +93,8 @@ class ProjectCubit extends Cubit<ProjectStates> {
     emit(GetUserLoadingState());
 
     await FirebaseFirestore.instance.collection('users').doc(uId).get().then((value) {
-      print(value);
         userModel = UserModel.fromJson(value.data() as Map<String, dynamic>);
         emit(GetUserSuccessState());
-        print('*************************************************');
-        print(value);
 
     }).catchError((error) {
       emit(GetUserErrorState(error.toString()));
@@ -116,10 +111,9 @@ class ProjectCubit extends Cubit<ProjectStates> {
 
     if (pickedFile != null) {
       profileImage = File(pickedFile.path);
-      print(pickedFile.path);
+
       emit(ProfileImagePickedSuccessState());
     } else {
-      print('No image selected.');
       emit(ProfileImagePickedErrorState());
     }
   }
@@ -138,12 +132,12 @@ class ProjectCubit extends Cubit<ProjectStates> {
         .then((value) {
       value.ref.getDownloadURL().then((value) {
         emit(UploadProfileImageSuccessState());
-        print(value);
         updateUser(
           name: name,
           phone: phone,
           email: email,
           image: value,
+
         );
       }).catchError((error) {
         emit(UploadProfileImageErrorState());
@@ -158,7 +152,6 @@ class ProjectCubit extends Cubit<ProjectStates> {
     required String name,
     required String phone,
     required String email,
-    String? cover,
     String? image,
   }) {
     FirebaseFirestore.instance
@@ -168,8 +161,7 @@ class ProjectCubit extends Cubit<ProjectStates> {
       'name':name,
       'phone':phone,
       'email':email,
-    })
-        .then((value) {
+    }).then((value) {
       getUserData();
       emit(UserUpdateSuccessState());
     }).catchError((error) {
@@ -291,14 +283,14 @@ class ProjectCubit extends Cubit<ProjectStates> {
     "page2-btn2": "Close",
     "page3-title2": "Choose Shape You Want and click on it",
     "page4-title2": "Instructions to Keep your hand work well",
-    "page4-ins1": "Don\'t Remove Any part From hand",
+    "page4-ins1": "Don't Remove Any part From hand",
     "page4-ins2": "Use battery voltage not about low 4.8 no more than 6 volt.",
     "page4-ins3": "Change Battery Supply Every Week ",
     "page4-ins4": "Avoid changing the wire that connects the fingers together.",
     "page4-ins5":
-        "Don\’t make any one remove anything from your hand, thinking that is good ,that might destroy your hand.",
+        "Don’t make any one remove anything from your hand, thinking that is good ,that might destroy your hand.",
     "page4-ins6":
-        "Don\’t Make water touch the battery or the inside  parts, it destroy it.",
+        "Don’t Make water touch the battery or the inside  parts, it destroy it.",
     "page4-ins7": "If u have any problem please contact us.",
     "profile-btn": "Edit Profile",
     "profile-title": "My Profile",
@@ -334,6 +326,6 @@ class ProjectCubit extends Cubit<ProjectStates> {
     if (currentUser == null) {
       isSignedIn = false;
     }
-    emit(signOutState());
+    emit(SignOutState());
   }
 }

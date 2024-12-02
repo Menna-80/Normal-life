@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +6,6 @@ import 'package:gradution_project/layout/cubit/states.dart';
 import 'package:gradution_project/screens/home.dart';
 import 'package:gradution_project/screens/login/login.dart';
 import 'package:gradution_project/screens/on_boarding.dart';
-import 'package:gradution_project/shared/components/components.dart';
 import 'package:gradution_project/shared/components/constants.dart';
 import 'package:gradution_project/shared/network/local/shared_pref.dart';
 import 'package:gradution_project/shared/themes.dart';
@@ -23,17 +21,16 @@ void main() async {
   Widget widget;
   uId = CachHelper.getData(key: 'uId');
 
-  bool? OnBoarding = CachHelper.getData(key: 'OnBoarding');
-  if (OnBoarding != null) {
+  bool? onBoarding = CachHelper.getData(key: 'OnBoarding');
+  if (onBoarding != null) {
     if (uId != null) {
-      widget = HomeScreen();
+      widget = const HomeScreen();
     } else {
-      widget = LoginScreen();
+      widget = const LoginScreen();
     }
   } else {
     widget = OnBoardScreen();
   }
-  print(OnBoarding);
 
   runApp(MyApp(
     startwidget: widget,
@@ -44,7 +41,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final Widget startwidget;
   final bool? isDark;
-  const MyApp({required this.isDark, required this.startwidget});
+  const MyApp({super.key, required this.isDark, required this.startwidget});
 
   // This widget is the root of your application.
   @override
@@ -70,10 +67,10 @@ class MyApp extends StatelessWidget {
                     : ThemeMode.light,
                 debugShowCheckedModeBanner: false,
                 home: StreamBuilder(
-                  stream: FirebaseAuth.instance.authStateChanges(),
+                  stream: FirebaseFirestore.instance.doc('users').snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
                   if(snapshot.hasData) {
-                    return HomeScreen();
+                    return const HomeScreen();
                   } else {
                     return startwidget;
                   }

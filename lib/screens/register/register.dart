@@ -1,59 +1,49 @@
 
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gradution_project/layout/cubit/states.dart';
 import '../../layout/cubit/cubit.dart';
 import '../../shared/components/components.dart';
 
-import '../../shared/components/constants.dart';
-import '../../shared/network/local/shared_pref.dart';
 import '../home.dart';
 
 
 class RegisterScreen extends StatelessWidget {
-   RegisterScreen({super.key});
+   const RegisterScreen({super.key});
 
-  var emailController = TextEditingController();
 
-  var passwordController = TextEditingController();
-
-  var nameController = TextEditingController();
-
-  var phoneController = TextEditingController();
-
-  late UserCredential userCredential;
-
-  var formkey = GlobalKey<FormState>();
 
 
   @override
   Widget build(BuildContext context) {
+    var emailController = TextEditingController();
+
+    var passwordController = TextEditingController();
+
+    var nameController = TextEditingController();
+
+    var phoneController = TextEditingController();
+
+    var formkey = GlobalKey<FormState>();
     return BlocProvider(
       create: (BuildContext context) => ProjectCubit(),
       child: BlocConsumer<ProjectCubit, ProjectStates>(
         listener: (context, state) {
           if (state is RegisterErrorState) {
-            ShowToast(
+            showToast(
               text: state.error,
               state: ToastStates.error,
             );
-            print('************************************************');
-            print('errrooooor');
-            print('************************************************');
           }
           if (state is CreateUserSuccessState) {
-            print('************************************************');
-            print(ProjectCubit.get(context).userModel);
-            print('************************************************');
-            if(ProjectCubit.get(context).userModel != null)
-
-                ShowToast(
+            if(ProjectCubit.get(context).userModel != null) {
+              showToast(
                   text:'Successfully registered' ,
                   state: ToastStates.success,
                 );
-                NavigateAndReplace(
+            }
+                navigateAndReplace(
                   context,
                   HomeScreen(),
                 );
@@ -73,7 +63,7 @@ class RegisterScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                          child: Container(
+                          child: SizedBox(
                             height: 200.0,
                             width: 200.0,
                             child:Image.asset(
@@ -102,6 +92,7 @@ class RegisterScreen extends StatelessWidget {
                             if (value.isEmpty) {
                               return 'please enter your name';
                             }
+                            return null;
                           },
                           label: 'User Name',
                           prefix: Icons.person_rounded,
@@ -117,6 +108,7 @@ class RegisterScreen extends StatelessWidget {
                             if (value.isEmpty) {
                               return 'email must not be empty';
                             }
+                            return null;
                           },
                           label: 'Email Address',
                           prefix: Icons.email_outlined,
@@ -132,6 +124,7 @@ class RegisterScreen extends StatelessWidget {
                               if (value.isEmpty) {
                                 return 'password must not be empty';
                               }
+                              return null;
                             },
                             onSubmit: (String? value) {},
                             isPassword: ProjectCubit.get(context).isPassword,
@@ -153,6 +146,7 @@ class RegisterScreen extends StatelessWidget {
                             if (value.isEmpty) {
                               return 'please enter your phone number';
                             }
+                            return null;
                           },
                           label: 'Phone Number',
                           prefix: Icons.phone,
